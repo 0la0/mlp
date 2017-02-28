@@ -20,7 +20,7 @@ public class driver {
                 {0}
         });
 
-        int[] hiddenLayers = new int[]{3};
+        int[] hiddenLayers = new int[]{3, 3};
 
         Network network = new Network(input, expectedOutput, hiddenLayers);
 

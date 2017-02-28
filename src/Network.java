@@ -10,7 +10,7 @@ public class Network {
     private List<Matrix> weights;
 
     public Network(Matrix input, Matrix expectedOutput, int[] hiddenLayerSizes) {
-        weights = getWeights(input.getNumColumns(), hiddenLayerSizes[0], expectedOutput.getNumColumns());
+        weights = getWeights(input.getNumColumns(), hiddenLayerSizes, expectedOutput.getNumColumns());
         train(input, expectedOutput);
     }
 
@@ -53,9 +53,22 @@ public class Network {
         Matrix weight = MatrixOperator.add(weights.get(backIndex), MatrixOperator.multiply(weightDelta, learningRate));
         updatedWeights.add(0, weight);
 
-        forwardLayer = layerResults.get(--backIndex);
+        backIndex--;
+        forwardLayer = layerResults.get(backIndex);
 
         //hidden > hidden
+        while (backIndex > 0) {
+            //System.out.println(".");
+            errorOutput = MatrixOperator.multiply(delta, MatrixOperator.transpose(weights.get(weights.size() - backIndex)));
+            sumPrime = MatrixOperator.transform(forwardLayer.sum, activationPrime);
+            delta = MatrixOperator.dot(errorOutput, sumPrime);
+            weightDelta = MatrixOperator.multiply(MatrixOperator.transpose(layerResults.get(backIndex - 1).output), delta);
+            weight = MatrixOperator.add(weights.get(backIndex), MatrixOperator.multiply(weightDelta, learningRate));
+            updatedWeights.add(0, weight);
+
+            backIndex--;
+            forwardLayer = layerResults.get(backIndex);
+        }
 
 
         //hidden > input
@@ -83,6 +96,11 @@ public class Network {
 
 
         //TODO: add middle layers
+        for (int i = 1; i < this.weights.size() - 1; i++) {
+            Matrix in = forwardResults.get(forwardResults.size() - 1).output;
+            Matrix weight = weights.get(i);
+            forwardResults.add(getLayerResult(in, weight, activation));
+        }
 
 
         Matrix lastIn = forwardResults.get(forwardResults.size() - 1).output;
@@ -94,11 +112,16 @@ public class Network {
 
     //rows: length of input feature vector
     //cols: number of node in subsequent layer
-    private List<Matrix> getWeights(int inputSize, int hiddenSize, int outputSize) {
+    private List<Matrix> getWeights(int inputSize, int[] hiddenLayerSizes, int outputSize) {
+        int hiddenSize = hiddenLayerSizes[0];
         List<Matrix> weights = new ArrayList<>();
         weights.add(new Matrix(inputSize, hiddenSize));
 
-        //TODO: add hidden > hidden layers
+        //TODO: hidden layers of different sizes
+        for (int i = 1; i < hiddenLayerSizes.length; i++) {
+            System.out.println("----------");
+            weights.add(new Matrix(hiddenSize, hiddenSize));
+        }
 
         weights.add(new Matrix(hiddenSize, outputSize));
         return weights;
