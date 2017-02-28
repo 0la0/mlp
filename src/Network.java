@@ -41,26 +41,31 @@ public class Network {
     }
 
     private List<Matrix> back(Matrix input, Matrix expectedOutput, List<LayerResult> layerResults, List<Matrix> weights) {
-        List<Matrix> updatedWeights = new ArrayList<>();
+        List<Matrix> updatedWeights = new LinkedList<>();
         int backIndex = layerResults.size() - 1;
 
+        //output > hidden
         LayerResult forwardLayer = layerResults.get(backIndex);
         Matrix errorOutput = MatrixOperator.subtract(expectedOutput, forwardLayer.output);
         Matrix sumPrime = MatrixOperator.transform(forwardLayer.sum, activationPrime);
         Matrix delta = MatrixOperator.dot(sumPrime, errorOutput);
         Matrix weightDelta = MatrixOperator.multiply(MatrixOperator.transpose(layerResults.get(backIndex - 1).output), delta);
-        Matrix weight = MatrixOperator.add(weights.get(1), MatrixOperator.multiply(weightDelta, learningRate));
+        Matrix weight = MatrixOperator.add(weights.get(backIndex), MatrixOperator.multiply(weightDelta, learningRate));
         updatedWeights.add(0, weight);
 
         forwardLayer = layerResults.get(--backIndex);
 
+        //hidden > hidden
+
+
+        //hidden > input
         errorOutput = MatrixOperator.multiply(delta, MatrixOperator.transpose(weights.get(1)));
         sumPrime = MatrixOperator.transform(forwardLayer.sum, activationPrime);
-        Matrix delta2 = MatrixOperator.dot(errorOutput, sumPrime);
-        Matrix weightDelta1 = MatrixOperator.multiply(MatrixOperator.transpose(input), delta2);
-        Matrix weight1 = MatrixOperator.add(weights.get(0), MatrixOperator.multiply(weightDelta1, learningRate));
+        delta = MatrixOperator.dot(errorOutput, sumPrime);
+        weightDelta = MatrixOperator.multiply(MatrixOperator.transpose(input), delta);
+        weight = MatrixOperator.add(weights.get(backIndex), MatrixOperator.multiply(weightDelta, learningRate));
+        updatedWeights.add(0, weight);
 
-        updatedWeights.add(0, weight1);
 
         return updatedWeights;
     }
