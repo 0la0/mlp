@@ -18,10 +18,8 @@ public class MatrixOperator {
         int numCols = m2.getNumColumns();
         Matrix result = new Matrix(numRows, numCols);
 
-
-
         for (int i = 0; i < m1.getNumRows(); i++) { //for each row of m1
-            for (int j = 0; j < m2.getNumColumns(); j++) { // for each column in m1
+            for (int j = 0; j < m2.getNumColumns(); j++) { // for each column in m2
                 double sum = 0;
                 for (int k = 0; k < m2.getNumRows(); k++) { // multiply by row element in m2
                     sum += m1.getElement(i, k) * m2.getElement(k, j);
@@ -33,15 +31,8 @@ public class MatrixOperator {
         return result;
     }
 
-    public static Matrix multiply(Matrix matrix, double scalar) {
-        Matrix result = new Matrix(matrix.getNumRows(), matrix.getNumColumns());
-        for (int i = 0; i < matrix.getNumRows(); i++) { //for each row
-            for (int j = 0; j < matrix.getNumColumns(); j++) { // for each column
-                double product = matrix.getElement(i, j) * scalar;
-                result.setElement(i, j, product);
-            }
-        }
-        return result;
+    public static Matrix multiplyScalar(Matrix matrix, double scalar) {
+        return transform(matrix, element -> element * scalar);
     }
 
     public static Matrix transpose(Matrix matrix) {
@@ -55,14 +46,10 @@ public class MatrixOperator {
     }
 
     public static Matrix transform(Matrix matrix, Activation activation) {
-        Matrix result = new Matrix(matrix.getNumRows(), matrix.getNumColumns());
-        for (int i = 0; i < matrix.getNumRows(); i++) {
-            for (int j = 0; j < matrix.getNumColumns(); j++) {
-                double transformedValue = activation.run(matrix.getElement(i, j));
-                result.setElement(i, j, transformedValue);
-            }
-        }
-        return result;
+        double[][] result = Arrays.stream(matrix.getData())
+                .map(row -> Arrays.stream(row).map(activation::run).toArray())
+                .toArray(double[][]::new);
+        return new Matrix(result);
     }
 
     public static Matrix subtract(Matrix m1, Matrix m2) {
@@ -73,7 +60,7 @@ public class MatrixOperator {
         return elementWise(m1, m2, (w, v) -> w + v);
     }
 
-    public static Matrix dot(Matrix m1, Matrix m2) {
+    public static Matrix multiplyElements(Matrix m1, Matrix m2) {
         return elementWise(m1, m2, (w, v) -> w * v);
     }
 

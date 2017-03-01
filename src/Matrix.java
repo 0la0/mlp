@@ -9,12 +9,11 @@ public class Matrix {
     private int numRows;
     private int numColumns;
     private double[][] data;
+    private static Random random = new Random();
 
     public Matrix(int numRows, int numColumns) {
         this.numRows = numRows;
         this.numColumns = numColumns;
-
-        Random random = new Random();
 
         data = IntStream.range(0, numRows)
                 .mapToObj(i -> IntStream.range(0, numColumns)
@@ -59,14 +58,11 @@ public class Matrix {
         return getNumRows() + " x " + getNumColumns();
     }
 
-    private double getSum() {
+    public double getMeanValue() {
         return Arrays.stream(data)
                 .flatMapToDouble(Arrays::stream)
-                .sum();
-    }
-
-    public double getMeanValue() {
-        return getSum() / (getSize() * 1.0);
+                .map(Math::abs)
+                .sum() / (getSize() * 1.0);
     }
 
     public String toString() {

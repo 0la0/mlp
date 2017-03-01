@@ -36,7 +36,7 @@ public class driver {
 
         int[] hiddenLayers = new int[]{3, 6, 4, 3};
 
-        Network network = new Network(input, expectedOutput, hiddenLayers);
+        MLP network = new MLP(input, expectedOutput, hiddenLayers);
 
         Matrix testData0 = new Matrix(new double[][]{
                 {0, 0, 0},
@@ -64,14 +64,14 @@ public class driver {
 
         Matrix expectedOutput = new Matrix(new double[][]{
                 {0},
-                {0},
-                {0},
-                {1}
+                {1},
+                {1},
+                {0}
         });
 
         int[] hiddenLayers = new int[]{3, 6, 4, 3};
 
-        Network network = new Network(input, expectedOutput, hiddenLayers);
+        MLP network = new MLP(input, expectedOutput, hiddenLayers);
 
 
         Matrix testData0 = new Matrix(new double[][]{

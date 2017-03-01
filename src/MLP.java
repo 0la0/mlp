@@ -1,16 +1,16 @@
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Network {
+public class MLP {
 
-    private double learningRate = 0.7;
+    private double learningRate = 0.8;
     private Activation activation = new Activation.Sigmoid();
     private Activation activationPrime = new Activation.SigmoidPrime();
 
     private List<Matrix> weights;
 
-    public Network(Matrix input, Matrix expectedOutput, int[] hiddenLayerSizes) {
-        weights = getWeights(input.getNumColumns(), hiddenLayerSizes, expectedOutput.getNumColumns());
+    public MLP(Matrix input, Matrix expectedOutput, int[] hiddenLayerSizes) {
+        weights = getInitialWeights(input.getNumColumns(), hiddenLayerSizes, expectedOutput.getNumColumns());
         String wieghtString = weights.stream()
                 .map(Matrix::getDimensionString)
                 .collect(Collectors.joining("\n"));
@@ -38,11 +38,15 @@ public class Network {
 //            }
             //TODO: adjust learning rate
 //            if (learningRate > 0) {
-//                learningRate -= 0.0001;
+//                learningRate -= 0.000001;
 //            }
         }
+
+        double meanError = error.getMeanValue();
+        double errorPercent = Math.round(meanError * 10000) / 100.0;
         System.out.println("final error:" + error);
         System.out.println("mean error: " + error.getMeanValue());
+        System.out.println("or: " + errorPercent + "%");
     }
 
     private List<Matrix> back(Matrix input, Matrix expectedOutput, List<LayerResult> layerResults, List<Matrix> weights) {
@@ -52,9 +56,9 @@ public class Network {
         //output > hidden
         Matrix errorOutput = MatrixOperator.subtract(expectedOutput, layerResults.get(backIndex).output);
         Matrix sumPrime = MatrixOperator.transform(layerResults.get(backIndex).sum, activationPrime);
-        Matrix delta = MatrixOperator.dot(sumPrime, errorOutput);
+        Matrix delta = MatrixOperator.multiplyElements(sumPrime, errorOutput);
         Matrix weightDelta = MatrixOperator.multiply(MatrixOperator.transpose(layerResults.get(backIndex - 1).output), delta);
-        Matrix weight = MatrixOperator.add(weights.get(backIndex), MatrixOperator.multiply(weightDelta, learningRate));
+        Matrix weight = MatrixOperator.add(weights.get(backIndex), MatrixOperator.multiplyScalar(weightDelta, learningRate));
         updatedWeights.add(0, weight);
 
         backIndex--;
@@ -63,9 +67,9 @@ public class Network {
         while (backIndex > 0) {
             errorOutput = MatrixOperator.multiply(delta, MatrixOperator.transpose(weights.get(backIndex + 1)));
             sumPrime = MatrixOperator.transform(layerResults.get(backIndex).sum, activationPrime);
-            delta = MatrixOperator.dot(errorOutput, sumPrime);
+            delta = MatrixOperator.multiplyElements(errorOutput, sumPrime);
             weightDelta = MatrixOperator.multiply(MatrixOperator.transpose(layerResults.get(backIndex - 1).output), delta);
-            weight = MatrixOperator.add(weights.get(backIndex), MatrixOperator.multiply(weightDelta, learningRate));
+            weight = MatrixOperator.add(weights.get(backIndex), MatrixOperator.multiplyScalar(weightDelta, learningRate));
             updatedWeights.add(0, weight);
 
             backIndex--;
@@ -75,9 +79,9 @@ public class Network {
         //hidden > input
         errorOutput = MatrixOperator.multiply(delta, MatrixOperator.transpose(weights.get(1)));
         sumPrime = MatrixOperator.transform(layerResults.get(backIndex).sum, activationPrime);
-        delta = MatrixOperator.dot(errorOutput, sumPrime);
+        delta = MatrixOperator.multiplyElements(errorOutput, sumPrime);
         weightDelta = MatrixOperator.multiply(MatrixOperator.transpose(input), delta);
-        weight = MatrixOperator.add(weights.get(backIndex), MatrixOperator.multiply(weightDelta, learningRate));
+        weight = MatrixOperator.add(weights.get(backIndex), MatrixOperator.multiplyScalar(weightDelta, learningRate));
         updatedWeights.add(0, weight);
 
         return updatedWeights;
@@ -91,8 +95,8 @@ public class Network {
     }
 
     private List<LayerResult> forward(Matrix input, List<Matrix> weights) {
-        List<LayerResult> forwardResults = new LinkedList<>();
         int forwardIndex = 0;
+        List<LayerResult> forwardResults = new LinkedList<>();
         forwardResults.add(getLayerResult(input, weights.get(forwardIndex), activation));
 
         while (forwardIndex++ < weights.size() - 2) {
@@ -107,12 +111,11 @@ public class Network {
         return forwardResults;
     }
 
-    //rows: length of input feature vector
-    //cols: number of node in subsequent layer
-    private List<Matrix> getWeights(int inputSize, int[] hiddenLayerSizes, int outputSize) {
+    private List<Matrix> getInitialWeights(int inputSize, int[] hiddenLayerSizes, int outputSize) {
         int firstHiddenLayerSize = hiddenLayerSizes[0];
         int lastHiddenLayerSize = hiddenLayerSizes[hiddenLayerSizes.length - 1];
-        List<Matrix> weights = new ArrayList<>();
+
+        List<Matrix> weights = new LinkedList<>();
         weights.add(new Matrix(inputSize, firstHiddenLayerSize));
 
         for (int i = 0; i < hiddenLayerSizes.length - 1; i++) {
@@ -122,6 +125,5 @@ public class Network {
         weights.add(new Matrix(lastHiddenLayerSize, outputSize));
         return weights;
     }
-
 
 }
