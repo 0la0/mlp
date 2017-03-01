@@ -34,9 +34,17 @@ public class driver {
                 {0.2, 0.9}
         });
 
-        int[] hiddenLayers = new int[]{3, 6, 4, 3};
+        int[] hiddenLayers = new int[]{4, 7, 3};
 
-        MLP network = new MLP(input, expectedOutput, hiddenLayers);
+        MlpOptions mlpOptions = new MlpOptions.Builder()
+                .setInput(input)
+                .setExpectedOutput(expectedOutput)
+                .setHiddenLayers(hiddenLayers)
+                .setNumIterations(10000)
+                .setMeanErrorExitThreshold(0.01)
+                .build();
+
+        MLP network = new MLP(mlpOptions);
 
         Matrix testData0 = new Matrix(new double[][]{
                 {0, 0, 0},
@@ -69,9 +77,18 @@ public class driver {
                 {0}
         });
 
-        int[] hiddenLayers = new int[]{3, 6, 4, 3};
+//        int[] hiddenLayers = new int[]{3, 6, 4, 3};
+        int[] hiddenLayers = new int[]{3, 6, 4};
 
-        MLP network = new MLP(input, expectedOutput, hiddenLayers);
+        MlpOptions mlpOptions = new MlpOptions.Builder()
+                .setInput(input)
+                .setExpectedOutput(expectedOutput)
+                .setHiddenLayers(hiddenLayers)
+                .setNumIterations(10000)
+                .setMeanErrorExitThreshold(0.01)
+                .build();
+
+        MLP network = new MLP(mlpOptions);
 
 
         Matrix testData0 = new Matrix(new double[][]{

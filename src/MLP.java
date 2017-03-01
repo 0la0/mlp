@@ -9,13 +9,13 @@ public class MLP {
 
     private List<Matrix> weights;
 
-    public MLP(Matrix input, Matrix expectedOutput, int[] hiddenLayerSizes) {
-        weights = getInitialWeights(input.getNumColumns(), hiddenLayerSizes, expectedOutput.getNumColumns());
+    public MLP(MlpOptions mlpOptions) {
+        weights = getInitialWeights(mlpOptions.getInput().getNumColumns(), mlpOptions.getHiddenLayers(), mlpOptions.getExpectedOutput().getNumColumns());
         String wieghtString = weights.stream()
                 .map(Matrix::getDimensionString)
                 .collect(Collectors.joining("\n"));
         System.out.println("wieghtString: \n" + wieghtString);
-        train(input, expectedOutput);
+        train(mlpOptions.getInput(), mlpOptions.getExpectedOutput(), mlpOptions.getNumIterations(), mlpOptions.getMeanErrorExitThreshold());
     }
 
     public Matrix predict(Matrix input) {
@@ -23,30 +23,26 @@ public class MLP {
         return predictResults.get(predictResults.size() - 1).getOutput();
     }
 
-    private void train(Matrix input, Matrix expectedOutput) {
+    private void train(Matrix input, Matrix expectedOutput, int numIterations, double exitThreshold) {
         Matrix error = null;
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < numIterations; i++) {
             List<LayerResult> forwardResults = forward(input, weights);
             error = MatrixOperator.subtract(expectedOutput, forwardResults.get(forwardResults.size() - 1).output);
             weights = back(input, expectedOutput, forwardResults, weights);
 
-            //if error rate is not decreasing at an acceptable rate, do random restart
-
-//            if (i % 1000 == 0) {
-//                System.out.println("weights" + weights);
-//                System.out.println("error: " + error);
-//            }
+            if (i % 1000 == 0) {
+                if (error.getMeanValue() <= exitThreshold) {
+                    System.out.println("exit threshold meet at iteration: " + i);
+                    break;
+                }
+            }
             //TODO: adjust learning rate
-//            if (learningRate > 0) {
-//                learningRate -= 0.000001;
-//            }
+            //  if (learningRate > 0) { learningRate -= 0.000001; }
         }
 
         double meanError = error.getMeanValue();
         double errorPercent = Math.round(meanError * 10000) / 100.0;
-        System.out.println("final error:" + error);
-        System.out.println("mean error: " + error.getMeanValue());
-        System.out.println("or: " + errorPercent + "%");
+        System.out.println("final error:" + error + "\nmean error: " + meanError + ", or: " + errorPercent + "%");
     }
 
     private List<Matrix> back(Matrix input, Matrix expectedOutput, List<LayerResult> layerResults, List<Matrix> weights) {
