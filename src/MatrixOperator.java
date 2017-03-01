@@ -74,13 +74,6 @@ public class MatrixOperator {
             double transformed = elementFunction.run(m1.getElement(row, col), m2.getElement(row, col));
             result.setElement(row, col, transformed);
         });
-
-//        for (int i = 0; i < m1.getNumRows(); i++) {
-//            for (int j = 0; j < m1.getNumColumns(); j++) {
-//                double transformed = elementFunction.run(m1.getElement(i, j), m2.getElement(i, j));
-//                result.setElement(i, j, transformed);
-//            }
-//        }
         return result;
     }
 

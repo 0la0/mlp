@@ -19,14 +19,14 @@ public class MLP {
     }
 
     public Matrix predict(Matrix input) {
-        List<LayerResult> predictResults = forward(input, weights);
-        return predictResults.get(predictResults.size() - 1).getOutput();
+        List<ForwardResult> predictResults = forward(input, weights);
+        return predictResults.get(predictResults.size() - 1).output;
     }
 
     private void train(Matrix input, Matrix expectedOutput, int numIterations, double exitThreshold) {
         Matrix error = null;
         for (int i = 0; i < numIterations; i++) {
-            List<LayerResult> forwardResults = forward(input, weights);
+            List<ForwardResult> forwardResults = forward(input, weights);
             error = MatrixOperator.subtract(expectedOutput, forwardResults.get(forwardResults.size() - 1).output);
             weights = back(input, expectedOutput, forwardResults, weights);
 
@@ -45,7 +45,7 @@ public class MLP {
         System.out.println("final error:" + error + "\nmean error: " + meanError + ", or: " + errorPercent + "%");
     }
 
-    private List<Matrix> back(Matrix input, Matrix expectedOutput, List<LayerResult> layerResults, List<Matrix> weights) {
+    private List<Matrix> back(Matrix input, Matrix expectedOutput, List<ForwardResult> layerResults, List<Matrix> weights) {
         List<Matrix> updatedWeights = new LinkedList<>();
         int backIndex = layerResults.size() - 1;
 
@@ -83,26 +83,26 @@ public class MLP {
         return updatedWeights;
     }
 
-    private LayerResult getLayerResult(Matrix input, Matrix weight, Activation activation) {
-        LayerResult layerResult = new LayerResult();
+    private ForwardResult getForwardLayer(Matrix input, Matrix weight, Activation activation) {
+        ForwardResult layerResult = new ForwardResult();
         layerResult.sum = MatrixOperator.multiply(input, weight);
         layerResult.output = MatrixOperator.transform(layerResult.sum, activation);
         return layerResult;
     }
 
-    private List<LayerResult> forward(Matrix input, List<Matrix> weights) {
+    private List<ForwardResult> forward(Matrix input, List<Matrix> weights) {
         int forwardIndex = 0;
-        List<LayerResult> forwardResults = new LinkedList<>();
-        forwardResults.add(getLayerResult(input, weights.get(forwardIndex), activation));
+        List<ForwardResult> forwardResults = new LinkedList<>();
+        forwardResults.add(getForwardLayer(input, weights.get(forwardIndex), activation));
 
         while (forwardIndex++ < weights.size() - 2) {
             Matrix in = forwardResults.get(forwardResults.size() - 1).output;
-            forwardResults.add(getLayerResult(in, weights.get(forwardIndex), activation));
+            forwardResults.add(getForwardLayer(in, weights.get(forwardIndex), activation));
         }
 
         Matrix lastIn = forwardResults.get(forwardResults.size() - 1).output;
         Matrix lastWeight = weights.get(forwardIndex);
-        forwardResults.add(getLayerResult(lastIn, lastWeight, activation));
+        forwardResults.add(getForwardLayer(lastIn, lastWeight, activation));
 
         return forwardResults;
     }
@@ -120,6 +120,14 @@ public class MLP {
 
         weights.add(new Matrix(lastHiddenLayerSize, outputSize));
         return weights;
+    }
+
+    private class ForwardResult {
+        Matrix sum;
+        Matrix output;
+        public String toString() {
+            return "\nsum: " + sum.toString() + "\noutput: " + output;
+        }
     }
 
 }
