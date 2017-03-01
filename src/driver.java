@@ -1,12 +1,12 @@
-import java.util.List;
+
 
 public class driver {
 
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
 
-//        testLogicGates();
-        testMultOut();
+        testLogicGates();
+//        testMultOut();
 
         System.out.println("time elapsed: " + (System.currentTimeMillis() - startTime));
     }

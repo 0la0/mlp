@@ -42,6 +42,7 @@ public class Network {
 //            }
         }
         System.out.println("final error:" + error);
+        System.out.println("mean error: " + error.getMeanValue());
     }
 
     private List<Matrix> back(Matrix input, Matrix expectedOutput, List<LayerResult> layerResults, List<Matrix> weights) {

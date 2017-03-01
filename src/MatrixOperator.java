@@ -16,7 +16,6 @@ public class MatrixOperator {
         }
         int numRows = m1.getNumRows();
         int numCols = m2.getNumColumns();
-        int size = numRows * numCols;
         Matrix result = new Matrix(numRows, numCols);
 
 
@@ -80,7 +79,7 @@ public class MatrixOperator {
 
     private static Matrix elementWise(Matrix m1, Matrix m2, ElementFunction elementFunction) {
         Matrix result = new Matrix(m1.getNumRows(), m1.getNumColumns());
-        int size = m1.getNumRows() * m1.getNumColumns();
+        int size = m1.getSize();
 
         IntStream.range(0, size).forEach(i -> {
             int row = (int) Math.floor(i / m1.getNumColumns());

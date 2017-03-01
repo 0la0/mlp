@@ -2,6 +2,7 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Matrix {
 
@@ -42,6 +43,10 @@ public class Matrix {
         return numColumns;
     }
 
+    public int getSize() {
+        return numRows * numColumns;
+    }
+
     public double getElement(int row, int column) {
         return data[row][column];
     }
@@ -52,6 +57,16 @@ public class Matrix {
 
     public String getDimensionString() {
         return getNumRows() + " x " + getNumColumns();
+    }
+
+    private double getSum() {
+        return Arrays.stream(data)
+                .flatMapToDouble(Arrays::stream)
+                .sum();
+    }
+
+    public double getMeanValue() {
+        return getSum() / (getSize() * 1.0);
     }
 
     public String toString() {
