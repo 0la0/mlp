@@ -11,6 +11,10 @@ public class Network {
 
     public Network(Matrix input, Matrix expectedOutput, int[] hiddenLayerSizes) {
         weights = getWeights(input.getNumColumns(), hiddenLayerSizes, expectedOutput.getNumColumns());
+        String wieghtString = weights.stream()
+                .map(Matrix::getDimensionString)
+                .collect(Collectors.joining("\n"));
+        System.out.println("wieghtString: \n" + wieghtString);
         train(input, expectedOutput);
     }
 
@@ -45,40 +49,35 @@ public class Network {
         int backIndex = layerResults.size() - 1;
 
         //output > hidden
-        LayerResult forwardLayer = layerResults.get(backIndex);
-        Matrix errorOutput = MatrixOperator.subtract(expectedOutput, forwardLayer.output);
-        Matrix sumPrime = MatrixOperator.transform(forwardLayer.sum, activationPrime);
+        Matrix errorOutput = MatrixOperator.subtract(expectedOutput, layerResults.get(backIndex).output);
+        Matrix sumPrime = MatrixOperator.transform(layerResults.get(backIndex).sum, activationPrime);
         Matrix delta = MatrixOperator.dot(sumPrime, errorOutput);
         Matrix weightDelta = MatrixOperator.multiply(MatrixOperator.transpose(layerResults.get(backIndex - 1).output), delta);
         Matrix weight = MatrixOperator.add(weights.get(backIndex), MatrixOperator.multiply(weightDelta, learningRate));
         updatedWeights.add(0, weight);
 
         backIndex--;
-        forwardLayer = layerResults.get(backIndex);
 
         //hidden > hidden
         while (backIndex > 0) {
-            //System.out.println(".");
-            errorOutput = MatrixOperator.multiply(delta, MatrixOperator.transpose(weights.get(weights.size() - backIndex)));
-            sumPrime = MatrixOperator.transform(forwardLayer.sum, activationPrime);
+            errorOutput = MatrixOperator.multiply(delta, MatrixOperator.transpose(weights.get(backIndex + 1)));
+            sumPrime = MatrixOperator.transform(layerResults.get(backIndex).sum, activationPrime);
             delta = MatrixOperator.dot(errorOutput, sumPrime);
             weightDelta = MatrixOperator.multiply(MatrixOperator.transpose(layerResults.get(backIndex - 1).output), delta);
             weight = MatrixOperator.add(weights.get(backIndex), MatrixOperator.multiply(weightDelta, learningRate));
             updatedWeights.add(0, weight);
 
             backIndex--;
-            forwardLayer = layerResults.get(backIndex);
         }
 
 
         //hidden > input
         errorOutput = MatrixOperator.multiply(delta, MatrixOperator.transpose(weights.get(1)));
-        sumPrime = MatrixOperator.transform(forwardLayer.sum, activationPrime);
+        sumPrime = MatrixOperator.transform(layerResults.get(backIndex).sum, activationPrime);
         delta = MatrixOperator.dot(errorOutput, sumPrime);
         weightDelta = MatrixOperator.multiply(MatrixOperator.transpose(input), delta);
         weight = MatrixOperator.add(weights.get(backIndex), MatrixOperator.multiply(weightDelta, learningRate));
         updatedWeights.add(0, weight);
-
 
         return updatedWeights;
     }
@@ -91,20 +90,17 @@ public class Network {
     }
 
     private List<LayerResult> forward(Matrix input, List<Matrix> weights) {
-        List<LayerResult> forwardResults = new ArrayList<>();
-        forwardResults.add(getLayerResult(input, weights.get(0), activation));
+        List<LayerResult> forwardResults = new LinkedList<>();
+        int forwardIndex = 0;
+        forwardResults.add(getLayerResult(input, weights.get(forwardIndex), activation));
 
-
-        //TODO: add middle layers
-        for (int i = 1; i < this.weights.size() - 1; i++) {
+        while (forwardIndex++ < weights.size() - 2) {
             Matrix in = forwardResults.get(forwardResults.size() - 1).output;
-            Matrix weight = weights.get(i);
-            forwardResults.add(getLayerResult(in, weight, activation));
+            forwardResults.add(getLayerResult(in, weights.get(forwardIndex), activation));
         }
 
-
         Matrix lastIn = forwardResults.get(forwardResults.size() - 1).output;
-        Matrix lastWeight = weights.get(weights.size() - 1);
+        Matrix lastWeight = weights.get(forwardIndex);
         forwardResults.add(getLayerResult(lastIn, lastWeight, activation));
 
         return forwardResults;
@@ -113,17 +109,16 @@ public class Network {
     //rows: length of input feature vector
     //cols: number of node in subsequent layer
     private List<Matrix> getWeights(int inputSize, int[] hiddenLayerSizes, int outputSize) {
-        int hiddenSize = hiddenLayerSizes[0];
+        int firstHiddenLayerSize = hiddenLayerSizes[0];
+        int lastHiddenLayerSize = hiddenLayerSizes[hiddenLayerSizes.length - 1];
         List<Matrix> weights = new ArrayList<>();
-        weights.add(new Matrix(inputSize, hiddenSize));
+        weights.add(new Matrix(inputSize, firstHiddenLayerSize));
 
-        //TODO: hidden layers of different sizes
-        for (int i = 1; i < hiddenLayerSizes.length; i++) {
-            System.out.println("----------");
-            weights.add(new Matrix(hiddenSize, hiddenSize));
+        for (int i = 0; i < hiddenLayerSizes.length - 1; i++) {
+            weights.add(new Matrix(hiddenLayerSizes[i], hiddenLayerSizes[i + 1]));
         }
 
-        weights.add(new Matrix(hiddenSize, outputSize));
+        weights.add(new Matrix(lastHiddenLayerSize, outputSize));
         return weights;
     }
 

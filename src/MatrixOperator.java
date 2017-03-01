@@ -8,6 +8,12 @@ public class MatrixOperator {
     }
 
     public static Matrix multiply(Matrix m1, Matrix m2) {
+        if (m1.getNumColumns() != m2.getNumRows()) {
+            String m1Dims = m1.getDimensionString();
+            String m2Dims = m2.getDimensionString();
+            System.out.println("MatrixOperator.multiply ERROR: incompatible dimensions " + m1Dims + " by " + m2Dims);
+            return null;
+        }
         int numRows = m1.getNumRows();
         int numCols = m2.getNumColumns();
         int size = numRows * numCols;

@@ -50,6 +50,10 @@ public class Matrix {
         data[row][column] = element;
     }
 
+    public String getDimensionString() {
+        return getNumRows() + " x " + getNumColumns();
+    }
+
     public String toString() {
         return Arrays.stream(data)
                 .map(row -> "\n[" +
